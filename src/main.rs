@@ -11,7 +11,10 @@ fn send_udp_broadcast_packet(buf: &[u8], src_ip: Option<&str>) {
     let socket: UdpSocket = UdpSocket::bind((src_ip, 0)).unwrap();
     socket.connect((Ipv4Addr::BROADCAST, 0)).unwrap();
     socket.send(buf).unwrap();
-    println!("Using source IP {}", socket.local_addr().unwrap().ip());
+    println!(
+        "Using source IP {} to send udp frame",
+        socket.local_addr().unwrap().ip()
+    );
     drop(socket);
 }
 
@@ -29,9 +32,14 @@ fn create_magic_wol_frame(mac: &str) -> Vec<u8> {
     }
     buf
 }
+
+fn wake_on_lan(mac: &str, src_ip: Option<&str>) {
+    let buf = create_magic_wol_frame(mac);
+    send_udp_broadcast_packet(&buf, src_ip);
+    println!("WOL sent to {mac}");
+}
+
 fn main() {
     let default_mac = "2c:f0:5d:e1:9e:d6";
-    let buf = create_magic_wol_frame(default_mac);
-    send_udp_broadcast_packet(&buf, None);
-    println!("Sending WOL to {default_mac}");
+    wake_on_lan(&default_mac, None);
 }

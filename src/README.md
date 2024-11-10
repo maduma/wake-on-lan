@@ -1,12 +1,14 @@
 # start-pc-on-lan
 
-Command to start a pc on lan given is mac-address
+Command to start a pc on lan given his mac-address
 
 ## Usage
 
-start-pc-on-lan [options] [mac|alias]
-start-pc-on-lan [options] create-alias mac alias
-start-pc-on-lan set-default mac|alias
+wake-on-lan [options] [mac|alias]
+wake-on-lan [options] create-alias mac alias
+wake-on-lan remove-alias alias
+wake-on-lan set-default-alias alias
+wake-on-lan set-default-source-ip ip
 
 options:
 
