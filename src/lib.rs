@@ -1,7 +1,6 @@
 pub mod wol {
     use std::{
-        net::{Ipv4Addr, UdpSocket},
-        vec,
+        net::{Ipv4Addr, UdpSocket}, num::ParseIntError
     };
 
     fn send_udp_broadcast_packet(buf: &[u8], src_ip: Option<&str>) {
@@ -19,15 +18,15 @@ pub mod wol {
         drop(socket);
     }
 
-    fn parse_mac(mac: &str) -> Vec<u8> {
+    fn parse_mac(mac: &str) -> Result<Vec<u8>, ParseIntError> {
         mac.split(':')
-            .map(|s| u8::from_str_radix(s, 16).unwrap())
-            .collect::<Vec<_>>()
+            .map(|s| u8::from_str_radix(s, 16))
+            .collect()
     }
 
     fn create_magic_wol_frame(mac: &str) -> Vec<u8> {
         let mut buf = vec![0xff, 0xff, 0xff, 0xff, 0xff, 0xff];
-        let mac = parse_mac(mac);
+        let mac = parse_mac(mac).unwrap();
         for _ in 0..16 {
             buf.append(&mut mac.clone());
         }
