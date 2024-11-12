@@ -2,8 +2,9 @@ use clap::{Parser, Subcommand};
 use wake_on_lan::wol::wake_on_lan;
 
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
+#[command(version)]
 struct Cli {
+    /// Can be a mac address (eg 2c:f0:5d:e1:9e:d6) or an alias
     device: Option<String>,
 
     #[arg(short, long)]
