@@ -1,7 +1,11 @@
 pub mod wol {
-    use std::{
-        net::{Ipv4Addr, UdpSocket}, num::ParseIntError
-    };
+    use std::net::{Ipv4Addr, UdpSocket};
+
+    #[derive(PartialEq, Debug)]
+    enum ParseMacError {
+        NotHex,
+        BadLenght,
+    }
 
     fn send_udp_broadcast_packet(buf: &[u8], src_ip: Option<&str>) {
         let src_ip = match src_ip {
@@ -18,10 +22,16 @@ pub mod wol {
         drop(socket);
     }
 
-    fn parse_mac(mac: &str) -> Result<Vec<u8>, ParseIntError> {
-        mac.split(':')
+    fn parse_mac(mac: &str) -> Result<Vec<u8>, ParseMacError> {
+        let mac = mac
+            .split(':')
             .map(|s| u8::from_str_radix(s, 16))
-            .collect()
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|_| ParseMacError::NotHex)?;
+        match mac.len() {
+            6 => Ok(mac),
+            _ => Err(ParseMacError::BadLenght),
+        }
     }
 
     fn create_magic_wol_frame(mac: &str) -> Vec<u8> {
