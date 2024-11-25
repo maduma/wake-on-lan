@@ -34,6 +34,13 @@ pub mod wol {
         }
     }
 
+    pub fn is_mac(mac: &str) -> bool {
+        match parse_mac(mac) {
+            Ok(_) => true,
+            _ => false,
+        }
+    }
+
     fn create_magic_wol_frame(mac: &str) -> Vec<u8> {
         let mut buf = vec![0xff, 0xff, 0xff, 0xff, 0xff, 0xff];
         let mac = parse_mac(mac).unwrap();

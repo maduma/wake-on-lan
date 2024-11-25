@@ -26,6 +26,9 @@ fn main() {
     let cli = Cli::parse();
     let default_mac = "2c:f0:5d:e1:9e:d6";
     if cli.command.is_none() {
-        wake_on_lan(default_mac, cli.source_ip.as_deref());
+        match cli.device {
+            Some(mac) => wake_on_lan(&mac, cli.source_ip.as_deref()),
+            _ => wake_on_lan(default_mac, cli.source_ip.as_deref()),
+        };
     }
 }
