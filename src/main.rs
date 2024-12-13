@@ -19,7 +19,7 @@ enum Commands {
     CreateAlias { alias: String, mac: String },
     RemoveAlias { alias: String },
     SetDefaultMac { mac: String },
-    // ListAlias,
+    // ListAliases,
     // TODO SetDefaultAlias { alias: String },
     SetDefaultSourceIp { source_ip: String },
 }
