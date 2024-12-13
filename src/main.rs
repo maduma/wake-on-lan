@@ -26,9 +26,9 @@ enum Commands {
 fn get_mac(device: &Option<String>) -> String {
     match device {
         Some(mac) => mac.to_string(),
-        _ => match alias::get_alias("default_mac") {
-            Some(mac) => mac,
-            _ => {
+        None      => match alias::get_alias("default_mac") {
+            Some(default_mac) => default_mac,
+            None              => {
                 println!("Please, set default mac!");
                 std::process::exit(0);
             }
