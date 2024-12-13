@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use wake_on_lan::wol::wake_on_lan;
+use wake_on_lan::{alias, wol};
 
 #[derive(Parser)]
 #[command(version)]
@@ -27,8 +27,11 @@ fn main() {
     let default_mac = "2c:f0:5d:e1:9e:d6";
     if cli.command.is_none() {
         match cli.device {
-            Some(mac) => wake_on_lan(&mac, cli.source_ip.as_deref()),
-            _ => wake_on_lan(default_mac, cli.source_ip.as_deref()),
+            Some(mac) => wol::wake_on_lan(&mac, cli.source_ip.as_deref()),
+            _ => match alias::get_alias("default_alias") {
+                Some(mac) => wol::wake_on_lan(&mac, cli.source_ip.as_deref()),
+                _ => wol::wake_on_lan(default_mac, cli.source_ip.as_deref()),
+            },
         };
     }
 }
