@@ -23,16 +23,20 @@ enum Commands {
     SetDefaultSourceIp { source_ip: String },
 }
 
+fn get_default_mac() -> String {
+    match alias::get_alias("default_mac") {
+        Some(default_mac) => default_mac,
+        None => {
+            println!("Please, set default mac!");
+            std::process::exit(0);
+        }
+    }
+}
+
 fn get_mac(device: &Option<String>) -> String {
     match device {
         Some(mac) => mac.to_string(),
-        None => match alias::get_alias("default_mac") {
-            Some(default_mac) => default_mac,
-            None => {
-                println!("Please, set default mac!");
-                std::process::exit(0);
-            }
-        },
+        None => get_default_mac(),
     }
 }
 
