@@ -60,8 +60,8 @@ pub mod wol {
 pub mod alias {
     use std::collections::HashMap;
     use std::env;
-    use std::path::{Path, PathBuf};
     use std::fs;
+    use std::path::{Path, PathBuf};
 
     fn get_db_path() -> PathBuf {
         let home_dir = env::var("HOMEPATH").unwrap();
@@ -83,7 +83,7 @@ pub mod alias {
         let json = serde_json::to_string(db).unwrap();
         let db_file = get_db_path();
         fs::write(db_file, json).unwrap();
-    } 
+    }
 
     pub fn create_alias(alias: &str, mac: &str) {
         let db = &mut open_db();
@@ -93,12 +93,15 @@ pub mod alias {
 
     pub fn remove_alias(_alias: &str) {
         let db = &mut open_db();
-        db.remove(_alias);
+        match db.remove(_alias) {
+            Some(_) => println!("Removing alias {_alias}"),
+            _ => println!("Cannot find alias {_alias}"),
+        };
         close_db(db)
     }
 
     pub fn get_alias(_alias: &str) -> Option<String> {
         let db = &open_db();
-        db.get(_alias).map(|s|s.to_string())
+        db.get(_alias).map(|s| s.to_string())
     }
 }

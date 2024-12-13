@@ -16,22 +16,38 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    CreateAlias { mac: String, alias: String },
+    CreateAlias { alias: String, mac: String },
     RemoveAlias { alias: String },
-    SetDefaultAlias { alias: String },
+    SetDefaultMac { mac: String },
+    // TODO SetDefaultAlias { alias: String },
     SetDefaultSourceIp { source_ip: String },
+}
+
+fn get_mac(device: &Option<String>) -> String {
+    match device {
+        Some(mac) => mac.to_string(),
+        _ => match alias::get_alias("default_mac") {
+            Some(mac) => mac,
+            _ => {
+                println!("Please, set default mac!");
+                std::process::exit(0);
+            }
+        },
+    }
 }
 
 fn main() {
     let cli = Cli::parse();
-    let default_mac = "2c:f0:5d:e1:9e:d6";
-    if cli.command.is_none() {
-        match cli.device {
-            Some(mac) => wol::wake_on_lan(&mac, cli.source_ip.as_deref()),
-            _ => match alias::get_alias("default_alias") {
-                Some(mac) => wol::wake_on_lan(&mac, cli.source_ip.as_deref()),
-                _ => wol::wake_on_lan(default_mac, cli.source_ip.as_deref()),
-            },
-        };
+    match cli.command {
+        None => {
+            let mac = get_mac(&cli.device);
+            wol::wake_on_lan(&mac, cli.source_ip.as_deref());
+        }
+        Some(Commands::CreateAlias { alias, mac }) => alias::create_alias(&alias, &mac),
+        Some(Commands::RemoveAlias { alias }) => alias::remove_alias(&alias),
+        Some(Commands::SetDefaultMac { mac }) => alias::create_alias("default_mac", &mac),
+        Some(Commands::SetDefaultSourceIp { source_ip }) => {
+            alias::create_alias("default_source_ip", &source_ip)
+        }
     }
 }
