@@ -32,16 +32,16 @@ pub fn create_alias(alias: &str, mac: &str) {
     close_db(db);
 }
 
-pub fn remove_alias(_alias: &str) {
+pub fn remove_alias(alias: &str) {
     let db = &mut open_db();
-    match db.remove(_alias) {
-        Some(_) => println!("Removing alias {_alias}"),
-        None => println!("Cannot find alias {_alias}"),
+    match db.remove(alias) {
+        Some(_) => println!("Removing alias {alias}"),
+        None => println!("Cannot find alias {alias}"),
     };
     close_db(db)
 }
 
-pub fn get_alias(_alias: &str) -> Option<String> {
+pub fn get_alias(alias: &str) -> Option<String> {
     let db = &open_db();
-    db.get(_alias).map(|s| s.to_string())
+    db.get(alias).map(|s| s.to_string())
 }
