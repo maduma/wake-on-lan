@@ -1,4 +1,5 @@
 use std::net::{Ipv4Addr, UdpSocket};
+use std::iter;
 
 #[derive(PartialEq, Debug)]
 enum ParseMacError {
@@ -6,11 +7,7 @@ enum ParseMacError {
     BadLenght,
 }
 
-fn send_udp_broadcast_packet(buf: &[u8], src_ip: Option<&str>) {
-    let src_ip = match src_ip {
-        Some(s) => s.parse().unwrap(),
-        None => Ipv4Addr::UNSPECIFIED,
-    };
+fn send_udp_broadcast_packet(buf: &[u8; 96], src_ip: Ipv4Addr) {
     let socket: UdpSocket = UdpSocket::bind((src_ip, 0)).unwrap();
     socket.connect((Ipv4Addr::BROADCAST, 0)).unwrap();
     socket.send(buf).unwrap();
@@ -21,36 +18,38 @@ fn send_udp_broadcast_packet(buf: &[u8], src_ip: Option<&str>) {
     drop(socket);
 }
 
-fn parse_mac(mac: &str) -> Result<Vec<u8>, ParseMacError> {
-    let mac = mac
+fn parse_mac(word: &str) -> Result<[u8; 6], ParseMacError> {
+    let bytes = word
         .split(':')
         .map(|s| u8::from_str_radix(s, 16))
         .collect::<Result<Vec<_>, _>>()
         .map_err(|_| ParseMacError::NotHex)?;
-    match mac.len() {
-        6 => Ok(mac),
+    match bytes.len() {
+        6 => Ok(bytes.try_into().unwrap()),
         _ => Err(ParseMacError::BadLenght),
     }
 }
 
-pub fn is_mac(mac: &str) -> bool {
-    match parse_mac(mac) {
+pub fn is_mac(word: &str) -> bool {
+    match parse_mac(word) {
         Ok(_) => true,
         Err(_) => false,
     }
 }
 
-fn create_magic_wol_frame(mac: &str) -> Vec<u8> {
+fn create_magic_wol_frame(mac: &[u8; 6]) -> [u8; 96] {
     let mut buf = vec![0xff, 0xff, 0xff, 0xff, 0xff, 0xff];
-    let mac = parse_mac(mac).unwrap();
-    for _ in 0..16 {
-        buf.append(&mut mac.clone());
-    }
-    buf
+    buf.extend(iter::repeat(mac).take(15).flatten());
+    buf.try_into().unwrap()
 }
 
 pub fn wake_on_lan(mac: &str, src_ip: Option<&str>) {
-    let buf = create_magic_wol_frame(mac);
+    let bytes = parse_mac(mac).unwrap();
+    let buf = create_magic_wol_frame(&bytes);
+    let src_ip = match src_ip {
+        Some(s) => s.parse().unwrap(),
+        None => Ipv4Addr::UNSPECIFIED,
+    };
     send_udp_broadcast_packet(&buf, src_ip);
     println!("WOL sent to {mac}");
 }
