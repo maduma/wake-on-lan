@@ -7,7 +7,7 @@ enum ParseMacError {
     BadLenght,
 }
 
-fn send_udp_broadcast_packet(buf: &[u8; 96], src_ip: Ipv4Addr) {
+fn send_udp_broadcast_packet(buf: &[u8; 102], src_ip: Ipv4Addr) {
     let socket: UdpSocket = UdpSocket::bind((src_ip, 0)).unwrap();
     socket.connect((Ipv4Addr::BROADCAST, 0)).unwrap();
     socket.send(buf).unwrap();
@@ -37,9 +37,9 @@ pub fn is_mac(word: &str) -> bool {
     }
 }
 
-fn create_magic_wol_frame(mac: &[u8; 6]) -> [u8; 96] {
+fn create_magic_wol_frame(mac: &[u8; 6]) -> [u8; 102] {
     let mut buf = vec![0xff, 0xff, 0xff, 0xff, 0xff, 0xff];
-    buf.extend(iter::repeat(mac).take(15).flatten());
+    buf.extend(iter::repeat(mac).take(16).flatten());
     buf.try_into().unwrap()
 }
 
