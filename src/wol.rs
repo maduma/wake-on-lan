@@ -1,8 +1,8 @@
-use std::net::{Ipv4Addr, UdpSocket};
 use std::iter;
+use std::net::{Ipv4Addr, UdpSocket};
 
 type Mac = [u8; 6];
-type WOLFrame = [u8; 102];
+type WOLPacket = [u8; 102];
 
 #[derive(PartialEq, Debug)]
 enum ParseMacError {
@@ -10,15 +10,13 @@ enum ParseMacError {
     BadLenght,
 }
 
-fn send_udp_broadcast_packet(buf: &WOLFrame, src_ip: Ipv4Addr) {
+fn send_udp_broadcast_packet(buf: &WOLPacket, src_ip: Ipv4Addr) {
     let socket: UdpSocket = UdpSocket::bind((src_ip, 0)).unwrap();
     socket.connect((Ipv4Addr::BROADCAST, 0)).unwrap();
     socket.send(buf).unwrap();
-    println!(
-        "Using source IP {} to send udp frame",
-        socket.local_addr().unwrap().ip()
-    );
+    let ip = socket.local_addr().unwrap().ip();
     drop(socket);
+    println!("Using source IP {ip} to send udp frame");
 }
 
 fn parse_mac(word: &str) -> Result<Mac, ParseMacError> {
@@ -27,6 +25,7 @@ fn parse_mac(word: &str) -> Result<Mac, ParseMacError> {
         .map(|s| u8::from_str_radix(s, 16))
         .collect::<Result<Vec<_>, _>>()
         .map_err(|_| ParseMacError::NotHex)?;
+
     match bytes.len() {
         6 => Ok(bytes.try_into().unwrap()),
         _ => Err(ParseMacError::BadLenght),
@@ -40,7 +39,7 @@ pub fn is_mac(word: &str) -> bool {
     }
 }
 
-fn create_magic_wol_frame(mac: &Mac) -> WOLFrame {
+fn create_magic_wol_frame(mac: &Mac) -> WOLPacket {
     let mut buf = vec![0xff, 0xff, 0xff, 0xff, 0xff, 0xff];
     buf.extend(iter::repeat(mac).take(16).flatten());
     buf.try_into().unwrap()
